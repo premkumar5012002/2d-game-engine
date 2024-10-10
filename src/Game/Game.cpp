@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 #include <SDL2/SDL_image.h>
 
-#include "Logger.hpp"
+#include "../Logger/Logger.hpp"
 
 Game::Game() {
     isRunning = false;

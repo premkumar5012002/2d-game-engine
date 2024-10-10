@@ -1,8 +1,16 @@
+CC = g++
+LAND_STD = -std=c++17
+COMPILER_FLAGS = -Wall -Wfatal-errors
+INCLUDE_PATH = -Ilibs
+SRC_FILES = src/*.cpp src/Game/*.cpp src/Logger/*.cpp
+LINKER_FLAGS = -llua5.3 -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer
+OBJ_NAME = 2d-game-engine
+
 build:
-	mkdir build && g++ -Wall -std=c++17 -Ilibs src/*.cpp -llua5.3 -lSDL2 -lSDL2_image -lSDL2_ttf -llua5.3 -o build/2d-game-engine
+	$(CC) $(COMPILER_FLAGS) $(LAND_STD) $(INCLUDE_PATH) $(SRC_FILES) $(LINKER_FLAGS) -o$(OBJ_NAME)
 
 run:
-	build/2d-game-engine
+	./$(OBJ_NAME)
 
 clean:
-	rm -r build
+	rm $(OBJ_NAME)
