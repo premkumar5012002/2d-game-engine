@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 #include <SDL2/SDL_image.h>
 
+#include "../ECS/ECS.hpp"
 #include "../Logger/Logger.hpp"
 
 Game::Game() {
@@ -61,13 +62,7 @@ void Game::Run() {
     }
 }
 
-glm::vec2 playerPosition;
-glm::vec2 playerVelocity;
-
-void Game::Setup() {
-    playerPosition = glm::vec2(10.0, 20.0);
-    playerVelocity = glm::vec2(10.0, 5.0);
-}
+void Game::Setup() {}
 
 
 void Game::ProcessInput() { 
@@ -99,33 +94,11 @@ void Game::Update() {
 
     // Store the current frame time in previous frame for next frame update
     millisecondsPreviousFrame = SDL_GetTicks64();
-
-    playerPosition.x += playerVelocity.x * deltaTime;
-    playerPosition.y += playerVelocity.y * deltaTime;
 }
 
 void Game::Render() {
     SDL_SetRenderDrawColor(renderer, 21, 21, 21, 255);
     SDL_RenderClear(renderer);
-
-    // Draw a PNG texture
-    SDL_Surface* surface = IMG_Load("./assets/images/tank-tiger-right.png");
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-
-    // Free surface after loaded into texture
-    SDL_FreeSurface(surface);
-
-    // What is the destination rectangle that we want to place our texture
-    SDL_Rect dstRect = {
-        static_cast<int>(playerPosition.x), 
-        static_cast<int>(playerPosition.y), 
-        32, 
-        32 
-    };
-    SDL_RenderCopy(renderer, texture, NULL, &dstRect);
-    
-    // Destroy texture after loaded into renderer
-    SDL_DestroyTexture(texture);
 
     SDL_RenderPresent(renderer);
 }
