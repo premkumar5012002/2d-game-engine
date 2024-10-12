@@ -59,6 +59,8 @@
         "chrono": "cpp",
         "ratio": "cpp",
         "format": "cpp",
-        "span": "cpp"
+        "span": "cpp",
+        "typeindex": "cpp",
+        "set": "cpp"
     }
 }
