@@ -7,10 +7,16 @@
 
 #include "../ECS/ECS.hpp"
 #include "../Logger/Logger.hpp"
+#include "../Systems/RenderSystem.hpp"
+#include "../Systems/MovementSystem.hpp"
+#include "../Components/SpriteComponent.hpp"
+#include "../Components/TransformComponent.hpp"
+#include "../Components/RigidBodyComponent.hpp"
 
 Game::Game() {
     isRunning = false;
     millisecondsPreviousFrame = 0;
+    registry = std::make_unique<Registry>();
     Logger::Log("Game constructor called!");
 }
 
@@ -62,7 +68,21 @@ void Game::Run() {
     }
 }
 
-void Game::Setup() {}
+void Game::Setup() {
+    // Add the systems that need to be processed in our game
+    registry->AddSystem<MovementSystem>();
+    registry->AddSystem<RenderSystem>();
+
+    Entity tank = registry->CreateEntity();
+    tank.AddComponent<TransformComponent>(glm::vec2(10.0, 30.0), glm::vec2(1.0, 1.0), 0.0);
+    tank.AddComponent<RigidBodyComponent>(glm::vec2(40.0, 0.0));
+    tank.AddComponent<SpriteComponent>(10, 10);
+
+    Entity truck = registry->CreateEntity();
+    truck.AddComponent<TransformComponent>(glm::vec2(50.0, 100.0), glm::vec2(1.0, 1.0), 0.0);
+    truck.AddComponent<RigidBodyComponent>(glm::vec2(0.0, 50.0));
+    truck.AddComponent<SpriteComponent>(10, 50);
+}
 
 
 void Game::ProcessInput() { 
@@ -94,11 +114,20 @@ void Game::Update() {
 
     // Store the current frame time in previous frame for next frame update
     millisecondsPreviousFrame = SDL_GetTicks64();
+
+    // Ask all the systems to update
+    registry->GetSystem<MovementSystem>().Update(deltaTime);
+
+    // Update the registry to process the entities that are waiting to be created/deleted
+    registry->Update();
 }
 
 void Game::Render() {
     SDL_SetRenderDrawColor(renderer, 21, 21, 21, 255);
     SDL_RenderClear(renderer);
+
+    // Invoke all the systems that need to render
+    registry->GetSystem<RenderSystem>().Update(renderer);
 
     SDL_RenderPresent(renderer);
 }
