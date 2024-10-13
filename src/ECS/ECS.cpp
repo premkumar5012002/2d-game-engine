@@ -15,9 +15,14 @@ void System::AddEntityToSystem(Entity entity) {
 }
 
 void System::RemoveEntityFromSystem(Entity entity) {
-    entities.erase(std::remove_if(entities.begin(), entities.end(), [&entity](Entity other) {
-        return entity == other;
-    }), entities.end());
+    entities.erase(
+        std::remove_if(
+            entities.begin(), 
+            entities.end(), 
+            [&entity](Entity other) { return entity == other; }
+        ), 
+        entities.end()
+    );
 }
 
 std::vector<Entity> System::GetSystemEntities() const {
@@ -38,7 +43,7 @@ Entity Registry::CreateEntity() {
     
     entitiesToBeAdded.insert(entity);
 
-    if (entityId >= entityComponentSignatures.size()) {
+    if (entityId >= static_cast<int>(entityComponentSignatures.size())) {
         entityComponentSignatures.resize(entityId + 1);
     }
 

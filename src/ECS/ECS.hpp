@@ -230,7 +230,7 @@ void Registry::AddComponent(Entity entity, TArgs&& ...args) {
     const auto componentId = Component<TComponent>::GetId();
     const auto entityId = entity.GetId();
 
-    if (componentId >= componentPools.size()) {
+    if (componentId >= static_cast<int>(componentPools.size())) {
         componentPools.resize(componentId + 1, nullptr);
     }
 
