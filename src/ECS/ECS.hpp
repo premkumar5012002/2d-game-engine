@@ -1,11 +1,12 @@
 #pragma once 
 
+#include <set>
+#include <deque>
 #include <vector>
 #include <bitset>
-#include <set>
-#include <unordered_map>
-#include <typeindex>
 #include <memory>
+#include <typeindex>
+#include <unordered_map>
 
 #include "../Logger/Logger.hpp"
 
@@ -42,7 +43,9 @@ class Entity {
     public:
         Entity(int id): id(id) {};
         Entity(const Entity& entity) = default;
+
         int GetId() const;
+        void Kill();
        
         Entity& operator =(const Entity& other) = default;
         bool operator ==(const Entity& other) const { return id == other.id; }
@@ -147,6 +150,9 @@ class Registry {
     private:
         int numEntities = 0;
 
+        // List of free entity ids that were previously removed
+        std::deque<int> freeIds;
+
         // Vector of component pools, each pool contains all the data for a certain compoenent type
         // [Vector index = component type id]
         // [Pool index = entity id]
@@ -178,6 +184,7 @@ class Registry {
         
         // Entity management
         Entity CreateEntity();
+        void KillEntity(Entity entity);
 
         // Component management
         template <typename TComponent, typename ...TArgs> void AddComponent(Entity entity, TArgs&& ...args);
@@ -191,9 +198,9 @@ class Registry {
         template <typename TSystem> bool HasSystem() const;
         template <typename TSystem> TSystem& GetSystem() const;
 
-        // Checks the component signature of an entity and add the entity to the systems
-        // that are interested in it
+        // Add and remove entities from their systems
         void AddEntityToSystems(Entity entity);
+        void RemoveEntityFromSystems(Entity entity);
 };
 
 template <typename TComponent>
