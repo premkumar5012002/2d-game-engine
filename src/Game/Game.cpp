@@ -9,17 +9,24 @@
 #include <SDL2/SDL_image.h>
 
 #include "../ECS/ECS.hpp"
+
 #include "../Logger/Logger.hpp"
+
 #include "../Systems/RenderSystem.hpp"
 #include "../Systems/MovementSystem.hpp"
+#include "../Systems/CollisionSystem.hpp"
 #include "../Systems/AnimationSystem.hpp"
+#include "../Systems/RenderColliderSystem.hpp"
+
 #include "../Components/SpriteComponent.hpp"
 #include "../Components/AnimationComponent.hpp"
 #include "../Components/TransformComponent.hpp"
 #include "../Components/RigidBodyComponent.hpp"
+#include "../Components/BoxColliderComponent.hpp"
 
 Game::Game() {
     isRunning = false;
+    isDebug = false;
     millisecondsPreviousFrame = 0;
     registry = std::make_unique<Registry>();
     assetStore = std::make_unique<AssetStore>();
@@ -79,6 +86,8 @@ void Game::LoadLevel(int level) {
     registry->AddSystem<RenderSystem>();
     registry->AddSystem<MovementSystem>();
     registry->AddSystem<AnimationSystem>();
+    registry->AddSystem<CollisionSystem>();
+    registry->AddSystem<RenderColliderSystem>();
 
     // Adding assets to the asset store    
     assetStore->AddTexture(renderer, "radar-image", "./assets/images/radar.png");
@@ -120,26 +129,28 @@ void Game::LoadLevel(int level) {
     }
     mapFile.close();
 
-    Entity tank = registry->CreateEntity();
-    tank.AddComponent<TransformComponent>(glm::vec2(10.0, 10.0), glm::vec2(1.0, 1.0), 0.0);
-    tank.AddComponent<RigidBodyComponent>(glm::vec2(40.0, 0.0));
-    tank.AddComponent<SpriteComponent>("tank-image", 32, 32, 1);
+    Entity radar = registry->CreateEntity();
+    radar.AddComponent<TransformComponent>(glm::vec2(windowWidth - 74, 10.0), glm::vec2(1.0, 1.0), 0.0);
+    radar.AddComponent<SpriteComponent>("radar-image", 64, 64, 3);
+    radar.AddComponent<AnimationComponent>(8, 5, true); 
 
+    Entity tank = registry->CreateEntity();
+    tank.AddComponent<TransformComponent>(glm::vec2(500.0, 10.0), glm::vec2(1.0, 1.0), 0.0);
+    tank.AddComponent<RigidBodyComponent>(glm::vec2(-40.0, 0.0));
+    tank.AddComponent<SpriteComponent>("tank-image", 32, 32, 1);
+    tank.AddComponent<BoxColliderComponent>(32, 32);
+ 
     Entity chopper = registry->CreateEntity();
     chopper.AddComponent<TransformComponent>(glm::vec2(100.0, 100.0), glm::vec2(1.0, 1.0), 0.0);
     chopper.AddComponent<RigidBodyComponent>(glm::vec2(0.0, 0.0));
     chopper.AddComponent<SpriteComponent>("chopper-image", 32, 32, 2);
     chopper.AddComponent<AnimationComponent>(2, 15, true);
 
-    Entity radar = registry->CreateEntity();
-    radar.AddComponent<TransformComponent>(glm::vec2(windowWidth - 74, 10.0), glm::vec2(1.0, 1.0), 0.0);
-    radar.AddComponent<SpriteComponent>("radar-image", 64, 64, 3);
-    radar.AddComponent<AnimationComponent>(8, 5, true);    
-
     Entity truck = registry->CreateEntity();
-    truck.AddComponent<TransformComponent>(glm::vec2(10.0, 50.0), glm::vec2(1.0, 1.0), 0.0);
-    truck.AddComponent<RigidBodyComponent>(glm::vec2(0.0, 50.0));
+    truck.AddComponent<TransformComponent>(glm::vec2(10.0, 10.0), glm::vec2(1.0, 1.0), 0.0);
+    truck.AddComponent<RigidBodyComponent>(glm::vec2(20.0, 0.0));
     truck.AddComponent<SpriteComponent>("truck-image", 32, 32, 1);
+    truck.AddComponent<BoxColliderComponent>(32, 32);
 }
 
 void Game::Setup() {
@@ -159,6 +170,8 @@ void Game::ProcessInput() {
             case SDL_KEYDOWN:
                 if (event.key.keysym.sym == SDLK_ESCAPE) {
                     isRunning = false;
+                } else if (event.key.keysym.sym == SDLK_d) {
+                    isDebug = !isDebug;
                 }
                 break;    
         }
@@ -183,6 +196,7 @@ void Game::Update() {
     // Ask all the systems to update
     registry->GetSystem<MovementSystem>().Update(deltaTime);
     registry->GetSystem<AnimationSystem>().Update();
+    registry->GetSystem<CollisionSystem>().Update();
 }
 
 void Game::Render() {
@@ -191,6 +205,9 @@ void Game::Render() {
 
     // Invoke all the systems that need to render
     registry->GetSystem<RenderSystem>().Update(renderer, assetStore);
+    if (isDebug) {
+        registry->GetSystem<RenderColliderSystem>().Update(renderer);
+    } 
 
     SDL_RenderPresent(renderer);
 }
