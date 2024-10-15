@@ -9,14 +9,17 @@
 #include <SDL2/SDL_image.h>
 
 #include "../ECS/ECS.hpp"
-
 #include "../Logger/Logger.hpp"
+#include "../EventBus/EventBus.hpp"
+#include "../Events/KeyPressedEvent.hpp"
 
+#include "../Systems/DamgeSystem.hpp"
 #include "../Systems/RenderSystem.hpp"
 #include "../Systems/MovementSystem.hpp"
 #include "../Systems/CollisionSystem.hpp"
 #include "../Systems/AnimationSystem.hpp"
 #include "../Systems/RenderColliderSystem.hpp"
+#include "../Systems/KeyboardMovementSystem.hpp"
 
 #include "../Components/SpriteComponent.hpp"
 #include "../Components/AnimationComponent.hpp"
@@ -25,10 +28,11 @@
 #include "../Components/BoxColliderComponent.hpp"
 
 Game::Game() {
-    isRunning = false;
     isDebug = false;
+    isRunning = false;
     millisecondsPreviousFrame = 0;
     registry = std::make_unique<Registry>();
+    eventBus = std::make_unique<EventBus>();
     assetStore = std::make_unique<AssetStore>();
     Logger::Log("Game constructor called!");
 }
@@ -84,10 +88,12 @@ void Game::Run() {
 void Game::LoadLevel(int level) {
     // Add the systems that need to be processed in our game
     registry->AddSystem<RenderSystem>();
+    registry->AddSystem<DamageSystem>();
     registry->AddSystem<MovementSystem>();
     registry->AddSystem<AnimationSystem>();
     registry->AddSystem<CollisionSystem>();
     registry->AddSystem<RenderColliderSystem>();
+    registry->AddSystem<KeyboardMovementSystem>();
 
     // Adding assets to the asset store    
     assetStore->AddTexture(renderer, "radar-image", "./assets/images/radar.png");
@@ -167,13 +173,17 @@ void Game::ProcessInput() {
                 isRunning = false;
                 break;
 
-            case SDL_KEYDOWN:
+            case SDL_KEYDOWN: {
+
+                eventBus->EmitEvent<KeyPressedEvent>(event.key.keysym.sym);
+
                 if (event.key.keysym.sym == SDLK_ESCAPE) {
                     isRunning = false;
                 } else if (event.key.keysym.sym == SDLK_d) {
                     isDebug = !isDebug;
                 }
                 break;    
+            }
         }
     }
 }
@@ -190,13 +200,20 @@ void Game::Update() {
     // Store the current frame time in previous frame for next frame update
     millisecondsPreviousFrame = SDL_GetTicks64();
 
+    // Reset all event handlers for the current frame
+    eventBus->Reset();
+
+    // Perform the subscription of the events for all systems
+    registry->GetSystem<DamageSystem>().SubscribeToEvents(eventBus);
+    registry->GetSystem<KeyboardMovementSystem>().SubscribeToEvents(eventBus);
+
     // Update the registry to process the entities that are waiting to be created/deleted
     registry->Update();
 
     // Ask all the systems to update
     registry->GetSystem<MovementSystem>().Update(deltaTime);
     registry->GetSystem<AnimationSystem>().Update();
-    registry->GetSystem<CollisionSystem>().Update();
+    registry->GetSystem<CollisionSystem>().Update(eventBus);
 }
 
 void Game::Render() {
@@ -205,6 +222,7 @@ void Game::Render() {
 
     // Invoke all the systems that need to render
     registry->GetSystem<RenderSystem>().Update(renderer, assetStore);
+
     if (isDebug) {
         registry->GetSystem<RenderColliderSystem>().Update(renderer);
     } 
