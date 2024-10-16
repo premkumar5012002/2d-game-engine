@@ -4,7 +4,7 @@ COMPILER_FLAGS = -Wall -Wfatal-errors
 INCLUDE_PATH = -Ilibs -I/opt/homebrew/include
 LINKER_PATH = -L/opt/homebrew/lib
 SRC_FILES = src/*.cpp src/Game/*.cpp src/Logger/*.cpp src/ECS/*.cpp src/AssetStore/*.cpp
-LINKER_FLAGS = -llua5.3 -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer
+LINKER_FLAGS = -llua5.4 -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer
 OBJ_NAME = 2d-game-engine
 
 build:

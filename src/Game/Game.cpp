@@ -56,8 +56,10 @@ void Game::Initialize() {
         return;
     }
 
-    windowWidth = 800;
-    windowHeight = 600;
+    SDL_DisplayMode displayMode;
+    SDL_GetCurrentDisplayMode(0, &displayMode);
+    windowWidth = displayMode.w;
+    windowHeight = displayMode.h;
 
     window = SDL_CreateWindow(
         "2D Game Engine",
@@ -80,13 +82,13 @@ void Game::Initialize() {
         return;
     }
 
-    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
-
     // Initialize the camera view with the entire screen area
     camera.x = 0;
     camera.y = 0;
     camera.w = windowWidth;
     camera.h = windowHeight;
+
+    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
 
     isRunning = true;
 }
@@ -129,50 +131,46 @@ void Game::LoadLevel(int level) {
     for (int y = 0; y < mapNumRows; y++) {
         for (int x = 0; x < mapNumCols; x++) {
             char ch;
-
             mapFile.get(ch);
             int srcRectY = std::atoi(&ch) * tileSize;
-            
             mapFile.get(ch);
             int srcRectX = std::atoi(&ch) * tileSize;
-
             mapFile.ignore();
 
             Entity tile = registry->CreateEntity();
-            
             tile.AddComponent<TransformComponent>(
                 glm::vec2(x * (tileScale * tileSize), y * (tileScale * tileSize)),
                 glm::vec2(tileScale, tileScale),
                 0.0  
             );
-
-            tile.AddComponent<SpriteComponent>("tilemap-image", tileSize, tileSize, 0, srcRectX, srcRectY);
+            tile.AddComponent<SpriteComponent>("tilemap-image", tileSize, tileSize, 0, false, srcRectX, srcRectY);
         }
     }
+    
     mapFile.close();
-
     mapWidth = mapNumCols * tileSize * tileScale;
     mapHeight = mapNumRows * tileSize * tileScale;
 
-    Entity radar = registry->CreateEntity();
-    radar.AddComponent<TransformComponent>(glm::vec2(windowWidth - 74, 10.0), glm::vec2(1.0, 1.0), 0.0);
-    radar.AddComponent<SpriteComponent>("radar-image", 64, 64, 3, true);
-    radar.AddComponent<AnimationComponent>(8, 5, true); 
-
-    Entity tank = registry->CreateEntity();
-    tank.AddComponent<TransformComponent>(glm::vec2(500.0, 10.0), glm::vec2(1.0, 1.0), 0.0);
-    tank.AddComponent<RigidBodyComponent>(glm::vec2(-40.0, 0.0));
-    tank.AddComponent<SpriteComponent>("tank-image", 32, 32, 1);
-    tank.AddComponent<BoxColliderComponent>(32, 32);
- 
     Entity chopper = registry->CreateEntity();
     chopper.AddComponent<TransformComponent>(glm::vec2(100.0, 100.0), glm::vec2(1.0, 1.0), 0.0);
     chopper.AddComponent<RigidBodyComponent>(glm::vec2(0.0, 0.0));
     chopper.AddComponent<SpriteComponent>("chopper-image", 32, 32, 2);
     chopper.AddComponent<AnimationComponent>(2, 15, true);
     chopper.AddComponent<KeyboardControlledComponent>(glm::vec2(0, -60), glm::vec2(60, 0), glm::vec2(0, 60), glm::vec2(-60, 0));
-    chopper.AddComponent<CameraFollowComponent>();
+    chopper.AddComponent<CameraFollowComponent>();    
 
+    Entity radar = registry->CreateEntity();
+    radar.AddComponent<TransformComponent>(glm::vec2(windowWidth - 74, 10.0), glm::vec2(1.0, 1.0), 0.0);
+    radar.AddComponent<RigidBodyComponent>(glm::vec2(0.0, 0.0));
+    radar.AddComponent<SpriteComponent>("radar-image", 64, 64, 3, true);
+    radar.AddComponent<AnimationComponent>(8, 5, true); 
+
+    Entity tank = registry->CreateEntity();
+    tank.AddComponent<TransformComponent>(glm::vec2(500.0, 10.0), glm::vec2(1.0, 1.0), 0.0);
+    tank.AddComponent<RigidBodyComponent>(glm::vec2(30.0, 0.0));
+    tank.AddComponent<SpriteComponent>("tank-image", 32, 32, 1);
+    tank.AddComponent<BoxColliderComponent>(32, 32);
+ 
     Entity truck = registry->CreateEntity();
     truck.AddComponent<TransformComponent>(glm::vec2(10.0, 10.0), glm::vec2(1.0, 1.0), 0.0);
     truck.AddComponent<RigidBodyComponent>(glm::vec2(20.0, 0.0));
