@@ -156,7 +156,7 @@ void Game::LoadLevel(int level) {
 
     Entity radar = registry->CreateEntity();
     radar.AddComponent<TransformComponent>(glm::vec2(windowWidth - 74, 10.0), glm::vec2(1.0, 1.0), 0.0);
-    radar.AddComponent<SpriteComponent>("radar-image", 64, 64, 3);
+    radar.AddComponent<SpriteComponent>("radar-image", 64, 64, 3, true);
     radar.AddComponent<AnimationComponent>(8, 5, true); 
 
     Entity tank = registry->CreateEntity();
@@ -203,6 +203,7 @@ void Game::ProcessInput() {
                 } else if (event.key.keysym.sym == SDLK_d) {
                     isDebug = !isDebug;
                 }
+
                 break;    
             }
         }

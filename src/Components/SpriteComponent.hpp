@@ -7,6 +7,7 @@ struct  SpriteComponent {
     int width;
     int height;
     int zIndex;
+    bool isFixed;
     SDL_Rect srcRect;
     std::string assetId;
 
@@ -14,7 +15,8 @@ struct  SpriteComponent {
         const std::string assetId = "", 
         int width = 0, 
         int height = 0,
-        int zIndex = 0, 
+        int zIndex = 0,
+        bool isFixed = false,
         int srcRectX = 0,
         int srcRectY = 0
     ) {
@@ -22,6 +24,7 @@ struct  SpriteComponent {
         this->height = height;
         this->zIndex = zIndex;
         this->assetId = assetId;
+        this->isFixed = isFixed;
         this->srcRect = { srcRectX, srcRectY, width, height };
     }
 };
