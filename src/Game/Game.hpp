@@ -12,11 +12,14 @@ const int MILLISECONDS_PER_FRAME = 1000 / FPS;
 
 class Game {
     private:
-        bool isRunning;
         bool isDebug;
+        bool isRunning;
         int millisecondsPreviousFrame;
+
+        SDL_Rect camera;
         SDL_Window* window;
         SDL_Renderer* renderer;
+
         std::unique_ptr<Registry> registry;
         std::unique_ptr<EventBus> eventBus;
         std::unique_ptr<AssetStore> assetStore;
@@ -28,8 +31,10 @@ class Game {
         void LoadLevel(int level);
 
     public:
-        int windowWidth;
-        int windowHeight;
+        static int windowWidth;
+        static int windowHeight;
+        static int mapWidth;
+        static int mapHeight;
 
         Game();
         ~Game();
