@@ -11,6 +11,7 @@
 #include "../ECS/ECS.hpp"
 #include "../Logger/Logger.hpp"
 #include "../EventBus/EventBus.hpp"
+
 #include "../Events/KeyPressedEvent.hpp"
 
 #include "../Systems/DamgeSystem.hpp"
@@ -19,13 +20,14 @@
 #include "../Systems/CollisionSystem.hpp"
 #include "../Systems/AnimationSystem.hpp"
 #include "../Systems/RenderColliderSystem.hpp"
-#include "../Systems/KeyboardMovementSystem.hpp"
+#include "../Systems/KeyboardControlSystem.hpp"
 
 #include "../Components/SpriteComponent.hpp"
 #include "../Components/AnimationComponent.hpp"
 #include "../Components/TransformComponent.hpp"
 #include "../Components/RigidBodyComponent.hpp"
 #include "../Components/BoxColliderComponent.hpp"
+#include "../Components/KeyboardControlledComponent.hpp"
 
 Game::Game() {
     isDebug = false;
@@ -93,11 +95,11 @@ void Game::LoadLevel(int level) {
     registry->AddSystem<AnimationSystem>();
     registry->AddSystem<CollisionSystem>();
     registry->AddSystem<RenderColliderSystem>();
-    registry->AddSystem<KeyboardMovementSystem>();
+    registry->AddSystem<KeyboardControlSystem>();
 
     // Adding assets to the asset store    
     assetStore->AddTexture(renderer, "radar-image", "./assets/images/radar.png");
-    assetStore->AddTexture(renderer, "chopper-image", "./assets/images/chopper.png");
+    assetStore->AddTexture(renderer, "chopper-image", "./assets/images/chopper-spritesheet.png");
     assetStore->AddTexture(renderer, "tilemap-image", "./assets/tilemaps/jungle.png");
     assetStore->AddTexture(renderer, "truck-image", "./assets/images/truck-ford-right.png");
     assetStore->AddTexture(renderer, "tank-image", "./assets/images/tank-panther-right.png");
@@ -151,6 +153,7 @@ void Game::LoadLevel(int level) {
     chopper.AddComponent<RigidBodyComponent>(glm::vec2(0.0, 0.0));
     chopper.AddComponent<SpriteComponent>("chopper-image", 32, 32, 2);
     chopper.AddComponent<AnimationComponent>(2, 15, true);
+    chopper.AddComponent<KeyboardControlledComponent>(glm::vec2(0, -20), glm::vec2(20, 0), glm::vec2(0, 20), glm::vec2(-20, 0));
 
     Entity truck = registry->CreateEntity();
     truck.AddComponent<TransformComponent>(glm::vec2(10.0, 10.0), glm::vec2(1.0, 1.0), 0.0);
@@ -205,7 +208,7 @@ void Game::Update() {
 
     // Perform the subscription of the events for all systems
     registry->GetSystem<DamageSystem>().SubscribeToEvents(eventBus);
-    registry->GetSystem<KeyboardMovementSystem>().SubscribeToEvents(eventBus);
+    registry->GetSystem<KeyboardControlSystem>().SubscribeToEvents(eventBus);
 
     // Update the registry to process the entities that are waiting to be created/deleted
     registry->Update();
