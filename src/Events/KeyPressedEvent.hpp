@@ -4,7 +4,7 @@
 #include <SDL2/SDL.h>
 
 #include "../ECS/ECS.hpp"
-#include"../EventBus/Event.hpp"
+#include "../EventBus/Event.hpp"
 
 class KeyPressedEvent: public Event {
     public:
