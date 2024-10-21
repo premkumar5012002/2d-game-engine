@@ -21,7 +21,6 @@ class ProjectileEmitSystem : public System {
         ProjectileEmitSystem() {
             RequireComponent<TransformComponent>();
             RequireComponent<ProjectileEmitterComponent>();
-            RequireComponent<KeyboardControlledComponent>();
         }
 
         void SubscribeToEvents(std::unique_ptr<EventBus>& eventBus) {
@@ -70,6 +69,7 @@ class ProjectileEmitSystem : public System {
                         projectileVelocity.y = projectileEmitter.projectileVelocity.y * directionY;
 
                         Entity projectile = entity.registry->CreateEntity();
+                        projectile.Group("projectiles");
                         projectile.AddComponent<TransformComponent>(projectilePosition, glm::vec2(1.0, 1.0), 0.0);
                         projectile.AddComponent<RigidBodyComponent>(projectileVelocity);
                         projectile.AddComponent<SpriteComponent>("bullet-image", 4, 4, 4);
@@ -92,7 +92,7 @@ class ProjectileEmitSystem : public System {
                 }
 
                 // Check if its time to re-emit a new projectile
-                if (SDL_GetTicks64() - projectileEmitter.lastEmissionTime > projectileEmitter.repeatFrequency) {
+                if (static_cast<int>(SDL_GetTicks64()) - projectileEmitter.lastEmissionTime > projectileEmitter.repeatFrequency) {
                     glm::vec2 projectilePosition = transform.position;
 
                     if (entity.HasComponent<SpriteComponent>()) {
@@ -103,6 +103,7 @@ class ProjectileEmitSystem : public System {
 
                     // Add a new projectile entity to the registry
                     Entity projectile = registry->CreateEntity();
+                    projectile.Group("projectiles");
                     projectile.AddComponent<TransformComponent>(projectilePosition, glm::vec2(1.0, 1.0), 0.0);
                     projectile.AddComponent<RigidBodyComponent>(projectileEmitter.projectileVelocity);
                     projectile.AddComponent<SpriteComponent>("bullet-image", 4, 4, 4);

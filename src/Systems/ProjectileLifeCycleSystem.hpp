@@ -15,7 +15,7 @@ class ProjectileLifeCycleSystem: public System {
                 auto projectile = entity.GetComponent<ProjectileComponent>();
 
                 // Kill projectile after they reach their duration limit
-                if (SDL_GetTicks64() - projectile.startTime > projectile.duration) {
+                if (static_cast<int>(SDL_GetTicks64()) - projectile.startTime > projectile.duration) {
                     entity.Kill();
                 }
             }
