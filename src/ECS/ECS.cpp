@@ -1,4 +1,4 @@
-#include "./ECS.hpp"
+#include "ECS.hpp"
 
 #include <algorithm>
 
@@ -176,6 +176,13 @@ void Registry::Update() {
 
         // Reset the entire component signature of that entity
         entityComponentSignatures[entity.GetId()].reset();
+
+        // Remove the entity from the component pools
+        for (auto pool: componentPools) {
+            if (pool) {
+                pool->RemoveEntityFromPool(entity.GetId());
+            }
+        }
 
         // Make the entity id available to be reused
         freeIds.push_back(entity.GetId());
