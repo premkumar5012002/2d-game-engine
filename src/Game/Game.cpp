@@ -19,9 +19,11 @@
 #include "../Systems/MovementSystem.hpp"
 #include "../Systems/CollisionSystem.hpp"
 #include "../Systems/AnimationSystem.hpp"
+#include "../Systems/RenderTextSystem.hpp"
 #include "../Systems/CameraMovementSystem.hpp"
 #include "../Systems/ProjectileEmitSystem.hpp"
 #include "../Systems/RenderColliderSystem.hpp"
+#include "../Systems/RenderHealthBarSystem.hpp"
 #include "../Systems/KeyboardControlSystem.hpp"
 #include "../Systems/ProjectileLifeCycleSystem.hpp"
 
@@ -30,6 +32,7 @@
 #include "../Components/AnimationComponent.hpp"
 #include "../Components/TransformComponent.hpp"
 #include "../Components/RigidBodyComponent.hpp"
+#include "../Components/TextLabelComponent.hpp"
 #include "../Components/BoxColliderComponent.hpp"
 #include "../Components/CameraFollowComponent.hpp"
 #include "../Components/ProjectileEmitterComponent.hpp"
@@ -57,6 +60,11 @@ Game::~Game() {
 void Game::Initialize() {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         Logger::Err("Error initializing SDL.");
+        return;
+    }
+
+    if (TTF_Init() != 0) {
+        Logger::Err("Error initializing SDL TTF.");
         return;
     }
 
@@ -113,9 +121,11 @@ void Game::LoadLevel(int level) {
     registry->AddSystem<MovementSystem>();
     registry->AddSystem<AnimationSystem>();
     registry->AddSystem<CollisionSystem>();
+    registry->AddSystem<RenderTextSystem>();
     registry->AddSystem<RenderColliderSystem>();
     registry->AddSystem<ProjectileEmitSystem>();
     registry->AddSystem<CameraMovementSystem>();
+    registry->AddSystem<RenderHealthBarSystem>();
     registry->AddSystem<KeyboardControlSystem>();
     registry->AddSystem<ProjectileLifeCycleSystem>();
 
@@ -126,6 +136,9 @@ void Game::LoadLevel(int level) {
     assetStore->AddTexture(renderer, "truck-image", "./assets/images/truck-ford-right.png");
     assetStore->AddTexture(renderer, "tank-image", "./assets/images/tank-panther-right.png");
     assetStore->AddTexture(renderer, "bullet-image", "./assets/images/bullet.png");
+
+    assetStore->AddFont("charriot-font", "./assets/fonts/charriot.ttf", 14);
+    assetStore->AddFont("arial-font", "./assets/fonts/arial.ttf", 14);
 
     int tileSize = 32;
     double tileScale = 2.0;
@@ -193,7 +206,11 @@ void Game::LoadLevel(int level) {
     truck.AddComponent<SpriteComponent>("truck-image", 32, 32, 1);
     truck.AddComponent<BoxColliderComponent>(32, 32);
     truck.AddComponent<ProjectileEmitterComponent>(glm::vec2(0.0, 100.0), 2000, 5000, 10, false);
-    truck.AddComponent<HealthComponent>(100); 
+    truck.AddComponent<HealthComponent>(100);
+
+    Entity label = registry->CreateEntity();
+    SDL_Color green = {0, 255, 0};
+    label.AddComponent<TextLabelComponent>(glm::vec2(windowWidth / 2 - 40, 10), "CHOPPER 1.0", "charriot-font", green, true); 
 }
 
 void Game::Setup() {
@@ -263,6 +280,8 @@ void Game::Render() {
 
     // Invoke all the systems that need to render
     registry->GetSystem<RenderSystem>().Update(camera, renderer, assetStore);
+    registry->GetSystem<RenderTextSystem>().Update(camera, renderer, assetStore);
+    registry->GetSystem<RenderHealthBarSystem>().Update(camera, renderer, assetStore);
 
     if (isDebug) {
         registry->GetSystem<RenderColliderSystem>().Update(renderer);
