@@ -3,6 +3,7 @@
 #include "../ECS/ECS.hpp"
 #include "../Logger/Logger.hpp"
 #include "../EventBus/EventBus.hpp"
+
 #include "../Events/CollisionEvent.hpp"
 
 #include "../Components/HealthComponent.hpp"

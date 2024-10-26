@@ -39,7 +39,9 @@ void System::RemoveEntityFromSystem(Entity entity) {
         std::remove_if(
             entities.begin(), 
             entities.end(), 
-            [&entity](Entity other) { return entity == other; }
+            [&entity](Entity other) { 
+                return entity == other;
+             }
         ), 
         entities.end()
     );

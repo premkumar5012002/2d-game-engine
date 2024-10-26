@@ -10,6 +10,7 @@ struct  SpriteComponent {
     bool isFixed;
     SDL_Rect srcRect;
     std::string assetId;
+    SDL_RendererFlip flip;
 
     SpriteComponent(
         const std::string assetId = "", 
@@ -25,6 +26,7 @@ struct  SpriteComponent {
         this->zIndex = zIndex;
         this->assetId = assetId;
         this->isFixed = isFixed;
+        this->flip = SDL_FLIP_NONE;
         this->srcRect = { srcRectX, srcRectY, width, height };
     }
 };

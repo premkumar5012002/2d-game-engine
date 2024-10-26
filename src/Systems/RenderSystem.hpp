@@ -30,9 +30,21 @@ class RenderSystem: public System {
 
             // Loop all entities that the system is interested in
             for (auto entity: entities) {
+
                 // Update entity position based on its velocity
                 const auto transform = entity.GetComponent<TransformComponent>();
                 const auto sprite = entity.GetComponent<SpriteComponent>();
+
+                bool isEntityOutside = (
+                    transform.position.x + (sprite.width * transform.scale.x) < camera.x || 
+                    transform.position.y + (sprite.height * transform.scale.y) < camera.y ||
+                    transform.position.x > camera.x + camera.w ||
+                    transform.position.y > camera.y + camera.h
+                );
+
+                if (isEntityOutside && !sprite.isFixed) {
+                    continue;
+                }
 
                 // Set the source rectange of our original sprite texture
                 SDL_Rect srcRect = sprite.srcRect;
@@ -52,7 +64,7 @@ class RenderSystem: public System {
                     &dstRect,
                     transform.rotation,
                     NULL,
-                    SDL_FLIP_NONE
+                    sprite.flip
                 );
             }
         }
