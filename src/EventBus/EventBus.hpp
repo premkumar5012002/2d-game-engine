@@ -1,12 +1,13 @@
 #pragma once
 
+#include "Event.hpp"
+
 #include <map>
 #include <list>
 #include <memory>
 #include <typeindex>
 #include <functional>
 
-#include "./Event.hpp"
 #include "../Logger/Logger.hpp"
 
 class IEventCallback {
@@ -60,7 +61,7 @@ class EventBus {
         // Subscribe to an event type <T>
         // In our implementation, a listerner subscribes to an event
         // Example: eventBus->SubscribeToEvent<CollisionEvent>(&Game::onCollision);
-        template <typename TEvent, typename TOwner> 
+        template <typename TEvent, typename TOwner>
         void SubscribeToEvent(TOwner* ownerInstance, void (TOwner::*callbackFunction)(TEvent&)) {
             if (!subscribers[typeid(TEvent)].get()) {
                 subscribers[typeid(TEvent)] = std::make_unique<HandlerList>();

@@ -6,18 +6,21 @@
 #include <iostream>
 #include <SDL2/SDL.h>
 #include <glm/glm.hpp>
+#include <imgui/imgui.h>
 #include <SDL2/SDL_image.h>
+#include <imgui/imgui_sdl.h>
+#include <imgui/imgui_impl_sdl2.h>
 
 #include "../ECS/ECS.hpp"
 #include "../Logger/Logger.hpp"
 #include "../EventBus/EventBus.hpp"
-
 #include "../Events/KeyPressedEvent.hpp"
 
 #include "../Systems/DamgeSystem.hpp"
 #include "../Systems/RenderSystem.hpp"
 #include "../Systems/MovementSystem.hpp"
 #include "../Systems/CollisionSystem.hpp"
+#include "../Systems/RenderGUISystem.hpp"
 #include "../Systems/AnimationSystem.hpp"
 #include "../Systems/RenderTextSystem.hpp"
 #include "../Systems/CameraMovementSystem.hpp"
@@ -75,8 +78,8 @@ void Game::Initialize() {
 
     window = SDL_CreateWindow(
         "2D Game Engine",
-        SDL_WINDOWPOS_CENTERED, 
-        SDL_WINDOWPOS_CENTERED, 
+        SDL_WINDOWPOS_CENTERED,
+        SDL_WINDOWPOS_CENTERED,
         windowWidth,
         windowHeight,
         SDL_WINDOW_BORDERLESS
@@ -94,6 +97,10 @@ void Game::Initialize() {
         return;
     }
 
+    // Initialize the ImGui context
+    ImGui::CreateContext();
+    ImGuiSDL::Initialize(renderer, windowWidth, windowHeight);
+
     // Initialize the camera view with the entire screen area
     camera.x = 0;
     camera.y = 0;
@@ -106,7 +113,7 @@ void Game::Initialize() {
 }
 
 void Game::Run() {
-    Setup(); 
+    Setup();
     while(isRunning) {
         ProcessInput();
         Update();
@@ -120,6 +127,7 @@ void Game::LoadLevel(int level) {
     registry->AddSystem<DamageSystem>();
     registry->AddSystem<MovementSystem>();
     registry->AddSystem<AnimationSystem>();
+    registry->AddSystem<RenderGUISystem>();
     registry->AddSystem<CollisionSystem>();
     registry->AddSystem<RenderTextSystem>();
     registry->AddSystem<RenderColliderSystem>();
@@ -129,7 +137,7 @@ void Game::LoadLevel(int level) {
     registry->AddSystem<KeyboardControlSystem>();
     registry->AddSystem<ProjectileLifeCycleSystem>();
 
-    // Adding assets to the asset store    
+    // Adding assets to the asset store
     assetStore->AddTexture(renderer, "radar-image", "./assets/images/radar.png");
     assetStore->AddTexture(renderer, "chopper-image", "./assets/images/chopper-spritesheet.png");
     assetStore->AddTexture(renderer, "tilemap-image", "./assets/tilemaps/jungle.png");
@@ -162,12 +170,12 @@ void Game::LoadLevel(int level) {
             tile.AddComponent<TransformComponent>(
                 glm::vec2(x * (tileScale * tileSize), y * (tileScale * tileSize)),
                 glm::vec2(tileScale, tileScale),
-                0.0  
+                0.0
             );
             tile.AddComponent<SpriteComponent>("tilemap-image", tileSize, tileSize, 0, false, srcRectX, srcRectY);
         }
     }
-    
+
     mapFile.close();
     mapWidth = mapNumCols * tileSize * tileScale;
     mapHeight = mapNumRows * tileSize * tileScale;
@@ -182,13 +190,13 @@ void Game::LoadLevel(int level) {
     chopper.AddComponent<ProjectileEmitterComponent>(glm::vec2(100.0, 100.0), 0, 10000, 10, true);
     chopper.AddComponent<KeyboardControlledComponent>(glm::vec2(0, -50), glm::vec2(50, 0), glm::vec2(0, 60), glm::vec2(-60, 0));
     chopper.AddComponent<CameraFollowComponent>();
-    chopper.AddComponent<HealthComponent>(100);      
+    chopper.AddComponent<HealthComponent>(100);
 
     Entity radar = registry->CreateEntity();
     radar.AddComponent<TransformComponent>(glm::vec2(windowWidth - 74, 10.0), glm::vec2(1.0, 1.0), 0.0);
     radar.AddComponent<RigidBodyComponent>(glm::vec2(0.0, 0.0));
     radar.AddComponent<SpriteComponent>("radar-image", 64, 64, 3, true);
-    radar.AddComponent<AnimationComponent>(8, 5, true); 
+    radar.AddComponent<AnimationComponent>(8, 5, true);
 
     Entity tank = registry->CreateEntity();
     tank.Group("enemies");
@@ -197,8 +205,8 @@ void Game::LoadLevel(int level) {
     tank.AddComponent<SpriteComponent>("tank-image", 32, 32, 1);
     tank.AddComponent<BoxColliderComponent>(32, 32);
     tank.AddComponent<ProjectileEmitterComponent>(glm::vec2(100, 0.0), 5000, 3000, 10, false);
-    tank.AddComponent<HealthComponent>(100); 
- 
+    tank.AddComponent<HealthComponent>(100);
+
     Entity truck = registry->CreateEntity();
     truck.Group("enemies");
     truck.AddComponent<TransformComponent>(glm::vec2(10.0, 10.0), glm::vec2(1.0, 1.0), 0.0);
@@ -210,17 +218,29 @@ void Game::LoadLevel(int level) {
 
     Entity label = registry->CreateEntity();
     SDL_Color green = {0, 255, 0};
-    label.AddComponent<TextLabelComponent>(glm::vec2(windowWidth / 2 - 40, 10), "CHOPPER 1.0", "charriot-font", green, true); 
+    label.AddComponent<TextLabelComponent>(glm::vec2(windowWidth / 2 - 40, 10), "CHOPPER 1.0", "charriot-font", green, true);
 }
 
 void Game::Setup() {
     LoadLevel(1);
 }
 
-void Game::ProcessInput() { 
+void Game::ProcessInput() {
     SDL_Event event;
 
     while (SDL_PollEvent(&event)) {
+        // ImGui SDL input
+        ImGui_ImplSDL2_ProcessEvent(&event);
+        ImGuiIO& io = ImGui::GetIO();
+
+        int mouseX, mouseY;
+        const int buttons = SDL_GetMouseState(&mouseX, &mouseY);
+
+        io.MousePos = ImVec2(mouseX, mouseY);
+        io.MouseDown[0] = buttons & SDL_BUTTON(SDL_BUTTON_LEFT);
+        io.MouseDown[1] = buttons & SDL_BUTTON(SDL_BUTTON_RIGHT);
+
+        // Handle core SDL events (close window, key pressed, etc.)
         switch (event.type) {
             case SDL_QUIT:
                 isRunning = false;
@@ -236,7 +256,7 @@ void Game::ProcessInput() {
                     isDebug = !isDebug;
                 }
 
-                break;    
+                break;
             }
         }
     }
@@ -276,7 +296,7 @@ void Game::Update() {
 
 void Game::Render() {
     SDL_SetRenderDrawColor(renderer, 21, 21, 21, 255);
-    SDL_RenderClear(renderer);  
+    SDL_RenderClear(renderer);
 
     // Invoke all the systems that need to render
     registry->GetSystem<RenderSystem>().Update(camera, renderer, assetStore);
@@ -284,13 +304,16 @@ void Game::Render() {
     registry->GetSystem<RenderHealthBarSystem>().Update(camera, renderer, assetStore);
 
     if (isDebug) {
-        registry->GetSystem<RenderColliderSystem>().Update(renderer);
-    } 
+        registry->GetSystem<RenderColliderSystem>().Update(camera, renderer);
+        registry->GetSystem<RenderGUISystem>().Update(camera, registry);
+    }
 
     SDL_RenderPresent(renderer);
 }
 
 void Game::Destroy() {
+    ImGuiSDL::Deinitialize();
+    ImGui::DestroyContext();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
