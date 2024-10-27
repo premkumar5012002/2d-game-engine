@@ -42,11 +42,10 @@ class RenderHealthBarSystem: public System {
                 }
                 
                 // Render Health Bar
-
                 SDL_Rect healthBarDstRect = {
                     static_cast<int>(transform.position.x + (sprite.width * transform.scale.x) - camera.x),
                     static_cast<int>(transform.position.y - camera.y),
-                    static_cast<int>(20 * (health.healthPercentage / 100.0)),
+                    static_cast<int>(15 * (health.healthPercentage / 100.0)),
                     3
                 };
 
@@ -54,9 +53,8 @@ class RenderHealthBarSystem: public System {
                 SDL_RenderFillRect(renderer, &healthBarDstRect);
 
                 // Render health font
-
                 SDL_Surface* surface = TTF_RenderText_Blended(
-                    assetStore->GetFont("charriot-font"),
+                    assetStore->GetFont("pico8-font-5"),
                     std::to_string(health.healthPercentage).c_str(),
                     healthBarColor
                 );

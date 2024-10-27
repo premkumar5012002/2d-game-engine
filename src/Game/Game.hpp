@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <SDL2/SDL.h>
+#include <sol/sol.hpp>
 #include <imgui/imgui.h>
 #include <imgui/imgui_sdl.h>
 
@@ -22,6 +23,7 @@ class Game {
         SDL_Window* window;
         SDL_Renderer* renderer;
 
+        sol::state lua;
         std::unique_ptr<Registry> registry;
         std::unique_ptr<EventBus> eventBus;
         std::unique_ptr<AssetStore> assetStore;
@@ -30,7 +32,6 @@ class Game {
         void ProcessInput();
         void Update();
         void Render();
-        void LoadLevel(int level);
 
     public:
         static int windowWidth;

@@ -41,10 +41,10 @@ class RenderGUISystem: public System {
                 static int projectileDuration = 10;
 
                 static int selectedSpriteIndex = 0;
-                std::string sprites[] = { "tank-image", "truck-image" };
+                std::string sprites[] = { "tank-textue", "truck-texture" };
 
                 if (ImGui::CollapsingHeader("Sprite", ImGuiTreeNodeFlags_DefaultOpen)) {
-                    if(ImGui::BeginCombo("Select sprite image", sprites[selectedSpriteIndex].c_str())) {
+                    if(ImGui::BeginCombo("Select sprite texture", sprites[selectedSpriteIndex].c_str())) {
                         for (int n = 0; n < IM_ARRAYSIZE(sprites); n++) {
                             const bool isSelected = (selectedSpriteIndex == n);
                             if (ImGui::Selectable(sprites[n].c_str(), isSelected)) {
