@@ -7,6 +7,7 @@
 #include "../Logger/Logger.hpp"
 #include "../AssetStore/AssetStore.hpp"
 
+#include "../Components/SoundComponent.hpp"
 #include "../Components/SpriteComponent.hpp"
 #include "../Components/HealthComponent.hpp"
 #include "../Components/ScriptComponent.hpp"
@@ -77,6 +78,11 @@ void LevelLoader::LoadLevel(
             int fontSize = asset["font_size"];
             assetStore->AddFont(assetId, assetFilePath, fontSize);
             Logger::Log("New font asset loaded to the asset store, id: " + assetId);
+        }
+
+        if (assetType == "sound") {
+            assetStore->AddSound(assetId, assetFilePath);
+            Logger::Log("A new sound asset was added to the asset store, id: " + assetId);
         }
 
         i++;
@@ -182,6 +188,15 @@ void LevelLoader::LoadLevel(
                     entity["components"]["sprite"]["fixed"].get_or(false),
                     entity["components"]["sprite"]["src_rect_x"].get_or(0),
                     entity["components"]["sprite"]["src_rect_y"].get_or(0)
+                );
+            }
+
+            // Sound
+            sol::optional<sol::table> sound = entity["components"]["sound"];
+            if (sound != sol::nullopt) {
+                newEntity.AddComponent<SoundComponent>(
+                    entity["components"]["sound"]["sound_asset_id"],
+                    entity["components"]["sound"]["loop"]
                 );
             }
 

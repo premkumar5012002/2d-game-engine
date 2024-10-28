@@ -17,6 +17,7 @@
 #include "../Events/KeyPressedEvent.hpp"
 
 #include "../Systems/DamgeSystem.hpp"
+#include "../Systems/SoundSystem.hpp"
 #include "../Systems/RenderSystem.hpp"
 #include "../Systems/ScriptSystem.hpp"
 #include "../Systems/MovementSystem.hpp"
@@ -58,6 +59,11 @@ void Game::Initialize() {
 
     if (TTF_Init() != 0) {
         Logger::Err("Error initializing SDL TTF.");
+        return;
+    }
+
+    if (Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 4096) != 0) {
+        Logger::Err("Error initializing SDL Mixer.");
         return;
     }
 
@@ -113,6 +119,7 @@ void Game::Run() {
 
 void Game::Setup() {
     // Add the systems that need to be processed in our game
+    registry->AddSystem<SoundSystem>();
     registry->AddSystem<RenderSystem>();
     registry->AddSystem<ScriptSystem>();
     registry->AddSystem<DamageSystem>();
@@ -133,7 +140,7 @@ void Game::Setup() {
 
     LevelLoader levelLoader;
     lua.open_libraries(sol::lib::base, sol::lib::math, sol::lib::os);
-    levelLoader.LoadLevel(lua, registry, assetStore, renderer, 2);
+    levelLoader.LoadLevel(lua, registry, assetStore, renderer, 1);
 }
 
 void Game::ProcessInput() {
@@ -199,6 +206,7 @@ void Game::Update() {
 
     // Ask all the systems to update
     registry->GetSystem<AnimationSystem>().Update();
+    registry->GetSystem<SoundSystem>().Update(assetStore);
     registry->GetSystem<MovementSystem>().Update(deltaTime);
     registry->GetSystem<CollisionSystem>().Update(eventBus);
     registry->GetSystem<ProjectileLifeCycleSystem>().Update();
@@ -227,6 +235,7 @@ void Game::Render() {
 void Game::Destroy() {
     ImGuiSDL::Deinitialize();
     ImGui::DestroyContext();
+    Mix_CloseAudio();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();

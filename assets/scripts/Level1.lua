@@ -372,6 +372,11 @@ Level = {
             file = "./assets/images/radar-spritesheet.png"
         },
         {
+            type = "sound",
+            id = "helicopter-sound",
+            file = "./assets/sounds/helicopter.wav"
+        },
+        {
             type = "font",
             id = "pico8-font-5",
             file = "./assets/fonts/pico8.ttf",
@@ -430,6 +435,10 @@ Level = {
                     fixed = false,
                     src_rect_x = 0,
                     src_rect_y = 0
+                },
+                sound = {
+                    sound_asset_id = "helicopter-sound",
+                    loop = -1
                 },
                 animation = {
                     num_frames = 2,
